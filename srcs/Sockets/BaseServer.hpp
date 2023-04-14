@@ -6,14 +6,12 @@
 /*   By: aparolar <aparolar@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 11:03:14 by aparolar          #+#    #+#             */
-/*   Updated: 2023/04/10 22:10:35 by aparolar         ###   ########.fr       */
+/*   Updated: 2023/04/14 04:20:56 by aparolar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVER_HPP
-# define SERVER_HPP
-
-class Server;
+#ifndef BASE_SERVER_HPP
+# define BASE_SERVER_HPP
 
 # include <stdlib.h>
 # include <unistd.h>
@@ -27,6 +25,7 @@ class Server;
 # include <string>
 # include <vector>
 # include <exception>
+# include "BaseServerClientData.hpp"
 
 # define	nullprt					0
 # define	MAX_CLIENTS				1000
@@ -39,47 +38,36 @@ class Server;
 # define	ERR_SERVER_LISTEN		"BaseServer main socket listen run-time error."
 # define	ERR_CLIENT_ACCEPT		"BaseServer client socket accept run-time error."
 
-// Struct to events
-
-struct BaseServerClientData
-{
-	public:
-
-		BaseServerClientData( const std::string address, const pollfd pfd, const std::string data, bool good_info = false )
-			:	Address(address),
-				ClientPollFd(pfd),
-				GoodInfo(good_info),
-				Data(data) {};
-
-		const std::string	Address;
-		const pollfd		ClientPollFd;
-		const std::string	Data;
-		bool				GoodInfo;
-};
+/*
+	Notas: implementar y revisar POLLOUT y lo que devuelve recv
+*/
 
 // Base Class Server
 
 class BaseServer
 {
+	// Public Typedef's
 		typedef std::vector<pollfd>::iterator				pollfd_iter;
 		typedef std::vector<BaseServerClientData>::iterator	bcd_iter;
+	
+	// Typename's
 
 	private:
-		//typenames
 
-		//Properties
+		// Properties
 		bool								_debug_mode;
 		int									_rawport;
 		int									_socket;
 		int									_server_fd;
-				
+		bool								_working;		
+
 		std::vector<pollfd>					_pollfds;
 		std::vector<BaseServerClientData>	_client_data;
 		const std::string					_hostname;
 		const std::string					_port;
 
 
-		//Methods
+		// Methods
 
 		void					CreateSocket();
 		int						Bind(int value);
@@ -87,7 +75,6 @@ class BaseServer
 		void					Disconnect(int client_fd);
 		std::string				GetClientAddress(sockaddr_in *addr);
 		int						StringToInt(const std::string& string);
-		BaseServerClientData&	GetClientInfoFromFd(int client_fd);
 
 		//Connection
 		void		OnConnect();
@@ -119,6 +106,10 @@ class BaseServer
 		// Properties access methods
 		void	SetDebugMode();
 		void	UnsetDebugMode();
+		void	Stop();
+
+			// Utility method's
+			BaseServerClientData&	GetClientInfoFromFd(int client_fd);
 	
 };
 

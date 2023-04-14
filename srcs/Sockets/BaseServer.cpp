@@ -6,7 +6,7 @@
 /*   By: aparolar <aparolar@student.42madrid.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 11:21:12 by aparolar          #+#    #+#             */
-/*   Updated: 2023/04/10 22:16:39 by aparolar         ###   ########.fr       */
+/*   Updated: 2023/04/14 04:20:58 by aparolar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ BaseServer::BaseServer(const std::string &hostname, const std::string& port)
 	_socket = -1;
 	_server_fd = -1;
 	_debug_mode = false;
+	_working = false;
 	CreateSocket();
 }
 
@@ -34,8 +35,9 @@ void BaseServer::Run()
 {
 	pollfd server_pollfd = {_server_fd, POLLIN, 0};
 	_pollfds.push_back(server_pollfd);
+	_working = true;
 
-	while (42)
+	while (_working)
 	{
 		if (poll(_pollfds.begin().base(), _pollfds.size(), 10) < 0)
 			throw std::runtime_error(ERR_SERVER_POLL);
@@ -97,9 +99,8 @@ bool BaseServer::OnData(int client_fd)
 
 	
 	if (_debug_mode)
-	{
 		std::cout << "From client fd [" << client_fd << "] data : [" << data << "]" << std::endl;
-	}
+		
 	return true;
 }
 
@@ -166,7 +167,7 @@ void BaseServer::Accept()
 
 	if (_debug_mode)
 	{
-		std::string proveMSG = "Hola, Bienvenidos al preservidor IRC irodrigo & icastell & aparolar.\n";
+		std::string proveMSG = "Hola, Bienvenidos al preservidor IRC.\n";
 		std::cout << "sending Hello to socket [" << fd << "] with ip: " << GetClientAddress(&addr) << std::endl;
 		if (send(fd, proveMSG.c_str(), proveMSG.length(), MSG_CONFIRM) < 0)
 			std::cout << "server connection send error, put here an exception" << std::endl;
@@ -242,5 +243,10 @@ BaseServerClientData& BaseServer::GetClientInfoFromFd(int client_fd)
 		}
 	}
 	throw std::runtime_error("GetClientInfoFromFd error.");
+}
+
+void	BaseServer::Stop()
+{
+	_working = false;
 }
 
